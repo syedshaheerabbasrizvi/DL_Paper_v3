@@ -3,28 +3,23 @@
 %% Enter your paper number here for the review copy
 \bmvcreviewcopy{??}
 
-\title{Author Guidelines for the\\ British Machine Vision Conference}
+\title{PlantWorld: A Unified Multi-Crop Plant Disease Dataset with Efficient Multimodal Benchmarking}
 
 % Enter the paper's authors in order
 % \addauthor{Name}{email/homepage}{INSTITUTION_CODE}
-\addauthor{Susan Student}{http://www.vision.inst.ac.uk/~ss}{1}
-\addauthor{Petra Prof}{http://www.vision.inst.ac.uk/~pp}{1}
-\addauthor{Colin Collaborator}{colin@collaborators.com}{2}
+\addauthor{Syed Zuhair Abbas Rizvi}{zuhair.abbas@sse.habib.edu.pk}{1}
+\addauthor{Syed Shaheer Abbas Rizvi}{shaheerabbas2503@gmail.com}{1}
+\addauthor{Sandesh Kumar}{sk05567@alumni.habib.edu.pk}{1}
+\addauthor{Abdul Samad}{abdul.samad@sse.habib.edu.pk}{1}
 
 % Enter the institutions
 % \addinstitution{Name\\Address}
 \addinstitution{
- The Vision Institute\\
- University of Borsetshire\\
- Wimbleham, UK
-}
-\addinstitution{
- Collaborators, Inc.\\
- 123 Park Avenue,\\
- New York, USA
+ Habib University\\
+ Karachi, Pakistan
 }
 
-\runninghead{Student, Prof, Collaborator}{BMVC Author Guidelines}
+\runninghead{Student, Student, Collaborator, Prof}{PlantWorld}
 
 % Any macro definitions you would like to include
 % These are not defined in the style file, because they don't begin
@@ -42,147 +37,303 @@
 \maketitle
 
 \begin{abstract}
-This document demonstrates the format requirements for papers submitted
-to the British Machine Vision Conference.  The format is designed for
-easy on-screen reading, and to print well at one or two pages per sheet.
-Additional features include: pop-up annotations for
-citations~\cite{Authors06,Mermin89}; a margin ruler for reviewing; and a
-greatly simplified way of entering multiple authors and institutions.
+Global food security is threatened by a myriad of plant diseases. Unfortunately, manual inspection is highly laborious and time-consuming, so automated detection has been in development. For this, multiple datasets have been developed, but each major one is largely isolated to a single geographical region. Hence, we propose a unified dataset (PlantWorld) consisting of 67,166 images across 16 crops and 54 disease categories, which integrates PlantVillage, PlantWild, and PlantDoc along with label standardization, disease merging, and underrepresented class removal.
 
-{\bf All authors are encouraged to read this document}, even if you have
-written many papers before.  As well as a description of the format, the
-document contains many instructions relating to formatting problems and
-errors that are common even in the work of authors who {\em have}
-written many papers before.
+Moreover, existing deep learning solutions focus on crop identification or single-crop disease identification instead of the more realistic multi-crop scenarios. Thus, we also propose a two-stage multimodal detection framework, trained on PlantWorld, where the first stage is crop identification given an image, while the second stage is disease identification on the image with the identified crop label. Experimental results demonstrate 98.48\% accuracy for crop classification, 96.62\% for disease detection with the true crop label, and 95.77\% for the two-stage pipeline, matching models present in literature on the dataset while containing significantly fewer parameters.
+
+Alongside the system, an explainable AI framework was also developed, including heatmap generation and intensity analysis to determine usage of features, showing that the system indeed prioritizes pathological lesions over background noise.
 \end{abstract}
 
 %-------------------------------------------------------------------------
 \section{Introduction}
 \label{sec:intro}
-The proceedings of BMVC are published only in electronic form, but it is still assumed
-that readers of the papers may wish to print the paper.   This document
-illustrates the required paper format, which is designed to read well either printed
-with two pages per sheet (``2-up''), or on screen.  Note that printing with one page
-per sheet will produce a ``large print'' version, which in many cases is not what is desired.
-To approximate the old BMVC format, print at one page per sheet, but do not choose
-the option to ``scale to fit paper''.
+As the world grows past 8 billion people, there is increasing pressure on agriculture to continue providing food for them. However, plant disease poses a significant threat to food security, leading to crop loss and possibly famine~\cite{ristaino2021persistent}. Combating this traditionally required manual inspection of crops, which is slow and requires too much human labor for application to large-scale agriculture~\cite{li2021}.
 
-\LaTeX\ users should use this template in order to prepare their paper.
-Users of other packages should emulate the style and layout of this
-example.  Note that best results will be achieved using {\tt pdflatex},
-which is available in most modern distributions.
+To automate this, machine learning models have been most effective. However, they rely on datasets such as PlantVillage or PlantDoc which are limited geographically as well as include lab photos, which do not suffice in wild environments. Additionally, while recent advances in foundation models have demonstrated remarkable ability to transfer across various visual domains, such models are often too computationally expensive for edge devices and lack the interpretability that domain experts require~\cite{pal2025lightweight}.
 
-\subsection{Paper length}
-Papers must not exceed 14 pages (excluding references). References and any appendices are unlimited.
-{\bf Only}  the acknowledgement and bibliography should be {\em excluded} from the page count: Papers must not have altered margins and formatting from those laid down by this style guide.
+We aim to address these gaps by introducing PlantWorld: a unified plant disease dataset which combines, standardizes labels, and cleans images taken from multiple existing plant disease datasets. Additionally, we also propose a two-stage pipeline which, given an image of a crop, accurately identifies its crop label, subsequently identifies its disease label if present, and outputs the same image but with the stricken areas localized. This allows using two significantly smaller models for each stage instead of one large model for direct disease classification which could mean achieving the same accuracy with fewer total parameters.
 
-The bibliography should begin immediately after the paper text.  It may
-be of any length, within reason.  It must {\em not} include
-annotations, figures, or any other paraphernalia intended to subvert the
-paper length requirement.
+Our focus is on disease detection for multiple crops, an emerging area stemming from the work of single-crop based disease classifiers. Particularly, the application of choice is disease detection at the ground-level, which complements aerial field monitoring and thus is necessary in practical deployment. Most importantly, little research has focused on explaining the final classification output and visualizing where in the image is the plant disease detected~\cite{kaler2025}. We address these gaps in the remainder of this paper.
+
+% ---------------------------------------------------------------
+\section{Literature Review}
+\label{sec:lit}
+
+Our work builds upon recent advancements in computer vision for agriculture. We reviewed contemporary papers to situate our approach, focusing on model architectures, mobile deployment, and dataset creation. Notably, in our review, a neglected area exists within these advancements in not just generalizing crop disease detection for a wide range of crops but also to explain such prediction.
+
+On dataset curation, significant development has been achieved beyond the foundational PlantVillage dataset~\cite{mohanty2016}, which contains only images taken in a lab setting. For instance, the PlantDoc dataset aimed to curate real-life images of plants, although it focused only on Indian crops~\cite{singh2020}. As a result, datasets PlantWild and PlantSeg were introduced by Wei \etal~\cite{wei2024a, wei2024b} which not only included images of crops in the wild but also upheld a large variety of crops and their diseases. Another important dataset of more than 2000 original high quality images is presented by Bishshash et al.~\cite{bishshash2024}, though they restrict their focus to cotton crops only.
+
+Regarding crop disease detection, Hepsağ~\cite{hepsag2023} used a few-shot learning approach through developing a model consisting of a fine-tuned CNN with its classification head replaced with a Support Vector Machine (SVM). While they achieved 88.4\% accuracy for 10-shot on the PlantVillage and PDD27 dataset, the model focused on low-data situations and thus does not compare to models meant for larger data particularly for multiple crops. Recently, Muragavalli \& Gopi~\cite{murugavalli2025plant} as well as Bhuyan and Singh~\cite{bhuyan2024evaluating} posited that vision transformers (ViTs) outperform traditional convolutional neural networks (CNNs) such as VGG and ResNet in identifying plant disease from images. One such example is the inception convolutional vision transformer (ICVT) was proposed~\cite{yu2023icvt}, which reached 99.94\% accuracy on visually clean datasets but dropped to 77.54\% when applied on the more realistic PlantDoc dataset, leading to inapplicability for practical situations. Meanwhile, another paper of importance is Picon \etal~\cite{picon2019conditional} which, by extending their CNN's input to include crop labels, reduced multi-crop disease misclassifications by 71\%; however, they did not address model explainability.
+
+On the subject of mobile deployment, Sharma \etal~\cite{sharma2025} utilized a combination of MobileNetV2 and ResNet50, which is a model with an optimized number of parameters while achieving over 99\% F1-score on tomato crop detection. However, this could have been expanded to other crops as well. Another such example is Liu \etal~\cite{liu2025} who proposed RicePest-YOLO, an enhanced lightweight YOLOv8-based model in order to detect rice pest images. They reported a mean average precision (mAP@0.5) of 94.3\% and mAP@0.5:0.95 of 67.3\%.
+
+Recent research has presented work on XAI as a means of transparency for crop disease detection. Nigar \etal~\cite{nigar2024} used Local Interpretable Model-agnostic Explanations (LIME) to visualize the output for their CNN models which had achieved a best accuracy of 99.69\%; however, this analysis was limited to the PlantVillage dataset which is restricted to clean lab photographs, reducing the model's applicability to realistic scenarios in the wild. XAI in general faces many obstacles when integrated to plant disease detection algorithms as detailed upon by Kaler and Kaur~\cite{kaler2025}. They attribute this difficulty to dataset quality, lack of interpretability in complex models particularly transformers, scalability in agricultural systems, and computational constraints.
+
+% ---------------------------------------------------------------
+\section{Dataset Curation}
+\label{sec:dataset}
+
+A robust and diverse dataset is the foundation of our project. The overwhelming majority of papers in crop disease detection use the PlantVillage dataset. However, as stated in our literature review, its images are all taken in a lab setting, which limits model generalizability. Alternatives exist, but each has its own biases; for instance, PlantDoc focuses on Indian crops, while PlantWild only includes Chinese plants. PlantSeg is the exception, but multiple crops contain too few images for an image classifier to work without overfitting.
+
+Thus, as our first major contribution, we created a unified plant disease dataset, named PlantWorld, by aggregating images from three geographically diverse public sources: PlantVillage (America), PlantDoc (India), and PlantWild (China). This includes not just clean images taken in the laboratory but also wild imagery under varying lighting conditions, backgrounds, and camera angles -- precisely what is encountered in deployment.
+
+\subsection{Taxonomic Harmonization}
+
+Aggregating three independently curated datasets introduces significant label inconsistency that must be resolved before training. Each source applies its own naming conventions, granularity, and disease groupings. We performed the following curation steps to produce a unified, coherent taxonomy:
+
+{\bf Label standardization.} Disease folder names were normalized across the sources (e.g., {\em apple\_scab} and {\em scab\_apple} mapped to {\em scab}), and crop names were unified to a single lowercase convention.
+
+{\bf Disease merging.} Several sources subdivided diseases at a finer granularity than is practically distinguishable from field imagery. For example, multiple {\em scab} subtypes appearing across sources were merged into a single class, as their visual phenotypes overlap significantly, so training on these underrepresented subtypes risks overfitting. Similar merges were applied across other disease families.
+
+{\bf Underrepresented class removal.} Crops with fewer than 500 images across all sources were discarded, as insufficient data precludes reliable classification. This reduced the dataset from the raw aggregate to 16 crops and 54 disease classes. Here, we found that PlantSeg, which we were also considering for inclusion, was found to contain largely underrepresented classes, with the only leftover images already present in PlantWild (by the same authors).
+
+The result is a dataset of 67,166 RGB images whose label space is consistent, biologically meaningful, and tractable for multi-class classification. To our knowledge and based on available literature, no prior work has unified these three sources under a single harmonized taxonomy.
+
 
 \begin{figure}
-\begin{tabular}{ccc}
-\bmvaHangBox{\fbox{\parbox{2.7cm}{~\\[2.8mm]
-\rule{0pt}{1ex}\hspace{2.24mm}\includegraphics[width=2.33cm]{images/eg1_largeprint.png}\\[-0.1pt]}}}&
-\bmvaHangBox{\fbox{\includegraphics[width=2.8cm]{images/eg1_largeprint.png}}}&
-\bmvaHangBox{\fbox{\includegraphics[width=5.6cm]{images/eg1_2up.png}}}\\
-(a)&(b)&(c)
-\end{tabular}
-\caption{It is often a good idea for the first figure to attempt to
-encapsulate the article, complementing the abstract.  This figure illustrates
-the various print and on-screen layouts for which this paper format has
-been optimised: (a) traditional BMVC print format; (b) on-screen
-single-column format, or large-print paper; (c) full-screen two column, or
-2-up printing. }
-\label{fig:teaser}
+  \centering
+  \includegraphics[width=0.6\columnwidth]{dataset_sample_grid.png}
+  \caption{Samples from PlantWorld, showing diversity across crops (rows) and diseases (columns). This highlights the mix of `in-the-wild' images and lab-based images.}
+  \label{fig:dataset_samples}
 \end{figure}
 
-\subsection{Citations}
-When citing a multi-author paper, you may save space by using ``{\em et
-alia}'', shortened to ``\etal'' (not ``{\em et.\ al.}'' as ``{\em et}'' is
-a complete word.)  The provided \verb'\etal' macro is a useful {\em aide
-memoire} in this regard.  However, use it only when there are three or more
-authors.  Thus, the following is correct: `` Frobnication has been trendy
-lately.  It was introduced by Alpher~\cite{Alpher02}, and subsequently
-developed by Alpher and Fotheringham-Smythe~\cite{Alpher03}, and Alpher
-\etal~\cite{Alpher04}.''
+\subsection{Dataset Statistics and Imbalance}
 
-This is incorrect: ``... subsequently developed by Alpher \etal~\cite{Alpher03} ...''
-because reference~\cite{Alpher03} has just two authors.  If you use the
-\verb'\etal' macro, then you need not worry about double periods
-when used at the end of a sentence as in Alpher \etal.
-
-%For this citation style, keep multiple citations in numerical (not
-%chronological) order, so prefer
-We use {\tt natbib}, so citations in random order are nicely sorted:
- \cite{Alpher03,Alpher02,Authors06b,Authors06}.  However, we don't use the
-compress option, as we want each reference to have its own hyperlink and
-popup window.
-
-%-------------------------------------------------------------------------
-\subsection{Footnotes}
-
-Please use footnotes\footnote {This is what a footnote looks like.  It
-often distracts the reader from the main flow of the argument.} sparingly.
-Indeed, try to avoid footnotes altogether and include necessary peripheral
-observations in
-the text (within parentheses, if you prefer, as in this sentence).  If you
-wish to use a footnote, place it at the bottom of the column on the page on
-which it is referenced. Use Times 8-point type, single-spaced.
-
-
-\begin{figure*}
-\begin{center}
-\fbox{\rule{0pt}{2in} \rule{.9\linewidth}{0pt}}
-\end{center}
-   \caption{Example of a short caption, which should be centered.}
-\label{fig:short}
-\end{figure*}
+The distribution of images per crop is shown in Table~\ref{tab:dataset_dist}. The dataset is substantially imbalanced: Tomato contributes 20,455 images while Raspberry contributes only 620, a ratio of 33:1. This long-tail distribution reflects the underlying imbalance in publicly available agricultural imagery and motivates the imbalance-handling strategies described later.
 
 \begin{table}
 \begin{center}
-\begin{tabular}{|l|c|}
+\begin{tabular}{|l|c|l|c|}
 \hline
-Method & Frobnability \\
+Crop & Image Count & Crop & Image Count \\
 \hline\hline
-Theirs & Frumpy \\
-Yours & Frobbly \\
-Ours & Makes one's heart Frob\\
+Apple       & 4027  & Potato    & 2774  \\
+Banana      & 795   & Raspberry & 620   \\
+Blueberry   & 1831  & Soybean   & 6181  \\
+Cherry      & 2103  & Squash    & 2591  \\
+Citrus      & 6030  & Strawberry& 1758  \\
+Corn        & 5150  & Tomato    & 20455 \\
+Grape       & 4781  & Wheat     & 1909  \\
+Peach       & 3223  &           &       \\
+Pepper bell & 2878  & Total     & 67166 \\
 \hline
 \end{tabular}
 \end{center}
-\caption{Results.   Ours is better.}
+\caption{Image Count per Crop in the Unified Dataset.}
+\label{tab:dataset_dist}
 \end{table}
 
-\subsection{Mathematics}
+With reference to this dataset, the pipeline is:
+\begin{itemize}
+    \item {\bf Input:} An image of a plant.
+    \item {\bf Stage 1 Output (Crop):} One of 16 coarse labels for crops.
+    \item {\bf Stage 2 Output (Disease):} One of 54 disease condition labels.
+    \item {\bf XAI:} The image with disease area highlighted and analysis displayed.
+\end{itemize}
 
-Please number all of your sections and displayed equations.  It is
-important for readers to be able to refer to any particular equation.  Just
-because you didn't refer to it in the text doesn't mean some future reader
-might not need to refer to it.  It is cumbersome to have to use
-circumlocutions like ``the equation second from the top of page 3 column
-1''.  (Note that the ruler will not be present in the final copy, so is not
-an alternative to equation numbers).  All authors will benefit from reading
-Mermin's description~\cite{Mermin89} of how to write mathematics.
+\subsection{Data Preprocessing and Enhancement}
+Given the variety in image resolution, first we resize and center-crop every image to $224 \times 224$. The rationale for this dimension is that it is the standard input dimension accepted by the ViTs we elaborate on later.
+
+After that, to prevent the model overfitting during training on the low-frequency cases, we augment the data using random flipping, rotations within 15 degrees, and color jitter; all these are possible cases when taking photos of crops in the field. This is applied both during training for crops and training for disease. Splits were done after dataset aggregation to prevent data leakage.
+
+% ---------------------------------------------------------------
+\section{Methodology}
+\label{sec:method}
+
+\subsection{Crop Detection}
+
+This is the first stage in our pipeline. We opted for ViTs, which have shown great success in other fields, but have seen limited application in multi-label crop disease classification as claimed by Thakur \etal~\cite{thakur2022plantvit}. Specifically, we selected MobileViT by Mehta and Rastegari~\cite{mehta2022}, a hybrid neural network that combines the efficiency and local inductive bias of CNNs with the global reasoning capabilities of transformers. This is critical to capture local patterns of crops, while maintaining the global context of the plant.
+
+The variant selected was MobileViT-S, which has 4.99M parameters; this is significantly smaller than ViT-Base, which has 86M parameters, and is a quantitative justification for this architecture choice. Furthermore, since this is pretrained on ImageNet-1k under 300 epochs, we could leverage transfer learning and potentially improve classification. Another reason is that mobile friendly ViTs are more applicable towards edge computing while maintaining impressive accuracies as seen in examples like MobilePlantViT~\cite{tonmoy2025mobileplantvit}.
+
+\subsection{Disease Detection}
+For this model, there are two inputs: the image of the crop, and the label of the identified crop from the previous stage. Hence, this stage implements a multimodal architecture fusing visual features with semantic crop context.
+
+Our approach is to use a MobileViT-S as the backbone. Through this, we have a visual stream where we extract the global average-pooled feature representation (a 640-dim vector) from its final stage. Next, we have a learnable embedding layer, which maps the discrete crop ID to a dense 32-dim vector. Because of this, our model can learn latent relationships between different types of crops.
+
+Finally, both vectors are fused to form a 672-dim state vector. We then perform layer normalization to stabilize the scale difference between the pre-trained ViT features and the embeddings trained on our dataset labels. This is followed by a multi-layer perceptron classifier with dropout(0.5) for regularization.
 
 
-%-------------------------------------------------------------------------
-\subsection{References}
+\subsection{Implementation Details}
 
-List and number all bibliographical references in 9-point Times,
-single-spaced, at the end of your paper. When referenced in the text,
-enclose the citation number in square brackets, for
-example~\cite{Authors06}.  Where appropriate, include the name(s) of
-editors of referenced books.
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\linewidth]{architecture3.png}
+    \caption{Overview of the two-stage architecture, demonstrating the fusion of crop predictions with visual features.}
+    \label{fig:architecture}
+\end{figure}
+
+For the crop detection model, the loss function selected was weighted cross-entropy, to address the class imbalance in our dataset. Classes with fewer images get a higher weight, which is calculated as:
+\begin{equation}
+    w_c = \frac{1}{\sqrt{N_c}}
+\end{equation}
+where $N_c$ is the count of class $c$. Moreover, we apply label smoothing with 0.1 for regularization (preventing overconfidence through slight adjustments of the target probability distribution). Our optimizer is AdamW~\cite{loshchilov2017decoupled}, a variant of Adam that implements weight decay (set to 0.01), and our learning rate is 0.0001 through empirical tuning. We also implemented a learning rate scheduler, particularly cosine annealing, so that the learning rate is adjusted to follow a cosine curve after each epoch, eventually approaching a minimum at the end of a cycle (we set 20 epochs) and hence encouraging better final convergence.
+
+For the disease detection model, we retain the same implementation details; however, instead of weighted cross-entropy loss, we implemented focal loss ($\gamma=2.0$)~\cite{lin2017focal}. This is because our dataset contains significant class imbalance as well as visually similar phenotypes, which are significantly harder to classify, so this dynamic loss function down-weights well-classified examples -- such as healthy or distinct diseases -- and forces the model to focus on these misclassified examples.
+
+\subsection{Uncertainty Estimation and Optimization}
+
+Along with the prediction, we introduce Monte Carlo Dropout during inferencing. This is grounded in its equivalence to approximate Bayesian posterior sampling~\cite{gal2016dropout}. In particular, we estimate the predictive entropy of the model by performing 25 stochastic forward passes, so that the model's confidence in its prediction can be quantitatively measured, improving reliability in the field.
+
+Moreover, since the major use case of this system is deployment in budget smartphones owned by farmers, we apply Post-Training Dynamic Quantization to convert 32-bit floating point weights to 8-bit integers to reduce the model size while retaining accuracy. This reduced model size from 21MB to 11MB (45\% reduction) along with a negligible +0.07\% accuracy gain.
+
+\subsection{Explainability and Robustness Framework}
+
+In computer vision, the industry standard for model explainability is the usage of Grad-CAM methods (to name a few, XGradCAM, ScoreCAM, FullGrad, and LayerCAM). However, as these were created mainly for CNNs, these are mostly gradient-based methods relying on backpropagation, and when applied to ViTs the heatmaps produced are much noisier and scattered due to blending of information from different tokens~\cite{abnar2020quantifying}.
+
+We evaluated two methods: EigenCAM~\cite{bany2020}, which uses PCA of learned features and is class-agnostic, and GradCAM++~\cite{chattopadhay2018}, which uses class-discriminative gradient weighting. Through aggregate evaluation using the deletion metric (described below), GradCAM++ produced more faithful localization maps and was adopted as our method of choice.
+
+For robustness, visual inspection of the heatmaps is not enough. We implemented three quantitative metrics:
+
+\begin{itemize}
+    \item Intensity analysis using feature ablation, where we assign weights to each input type (visual and semantic). The image is masked and the model's drop in confidence is measured; the same is done with the crop label independently. The percentage split is then normalized, quantifying what the model prioritizes (e.g. $77\%$ visual vs $23\%$ semantic for clean laboratory images).
+
+    \item Counterfactual testing, where the wrong crop label is provided (for example, giving "Banana" instead of "Corn") and the prediction is observed. If visual evidence is dominant, the model should retain the correct prediction.
+
+    \item Deletion metric and Area Under Curve (AUC). The most important pixels identified by GradCAM++ are iteratively removed, and the model's drop in confidence is tracked. A low AUC signals that the highlighted pixels were genuinely driving the decision thus confirming a cause of effect~\cite{petsiuk2018rise}.
+\end{itemize}
+
+% ---------------------------------------------------------------
+\section{Results and Discussion}
+\label{sec:results}
+
+\subsection{Crop Detection Results}
+
+We trained our model with a stored dataset split of 70\% for training, 15\% for validation, and 15\% for testing. Our final training accuracy was 98.89\% which corresponds to almost perfect classification of crops. Validation accuracy was similar to this at 97.6\%, which meant that our model was almost certainly generalizing well on the dataset. The performance of the model converged in only 5 epochs.
+
+The model was then tested on the test split, which yielded a final top-1 accuracy of 98.48\% with a loss of 0.6293; considering the sheer size and complexity of our dataset, this is strong performance. When considering how the model treats different classes, the weighted-averaged F1-score reported by our model is 98.87\%, so our modifications to optimization and regularization were successful.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\columnwidth]{Screenshot_20251209_222538.png}
+  \caption{Confusion matrix for crop detection.}
+  \label{fig:crop_cm}
+\end{figure}
+
+\subsection{Disease Detection Results}
+
+The multimodal disease detection was also successful. The model showed high generalization on the test set, with a final test accuracy of $96.62\%$ and a test loss of $0.0496$, which is competitive with figures presented by literature for disease classifiers of single crops. The model converged in 16 epochs, with divergence occurring thereafter in test loss, so early stopping was triggered.
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=0.9\textwidth]{disease_matrices.pdf}
+    \caption{Confusion matrices of four crops: Tomato, Wheat, Apple, and Grape.}
+    \label{fig:dismat}
+\end{figure*}
+
+During testing, we were interested in the robustness of the model across the biological domains of the crops. Hence, the confusion matrices of the four most populous crops were generated as seen in~\ref{fig:dismat}. Strong diagonal dominance is observed in all four matrices, with the predicted label matching generally with the true label. The few instances of off-diagonal elements were noted to be due to visually similar diseases within a single crop (e.g. "early blight" versus "late blight"), not because of model confusion over disparate conditions.
+
+To validate the contribution of the crop embedding in Stage 2, we trained an image-only baseline using an identical MobileViT-S backbone and classifier but without the learnable crop embedding, operating on the same 54 disease classes. The image-only baseline achieved $94.90\%$ test accuracy compared to $96.62\%$ for the fusion model, a drop of $1.72$ percentage points attributable solely to excluding the crop embedding. Hence, the semantic crop prior provides meaningful information which is not otherwise present in the visual features, particularly for shared disease conditions such as {\em early\_blight} which manifest similarly across crops but benefit from knowing which crop is under inspection. Moreover, we also noted that the fusion model converged at epoch 17, while the baseline needed till epoch 20, so the crop embedding may also be simplifying optimization.
+
+\subsection{Two-Stage Pipeline Results}
+
+With that being said, we connected the two trained models together in one seamless pipeline which, given an image, identifies its crop and uses the crop label embedding to identify its disease, if any. This was tested on our usual test dataset split of 6571 samples. The results are as follows: overall accuracy ended at $95.77\%$ with stage 1 crop accuracy at $98.48\%$. Notably, for the samples where the crop label was predicted correctly, disease accuracy was $96.82\%$, whereas for the remaining 100 ($1.5\%$) samples with incorrect crop label prediction, the disease accuracy plummeted to $28.00\%$. This implies that stage 2's performance is heavily reliant on stage 1's performance.
+
+\subsection{Explainability and Robustness Analysis}
+
+With Monte Carlo Dropout, we stratified predictions by estimating the entropy from the stochastic passes; if the entropy is below 0.5, we defined it to be a confident prediction. Our analysis revealed that 81\% of the test data was flagged as confident, where the model achieved 99.92\% accuracy. The remaining 19\% images were correctly flagged as uncertain, with a respective accuracy of 82.47\%; hence, in deployment, the system would defer these cases to human experts.
+
+For testing of XAI capabilities, we evaluated both EigenCAM and GradCAM++ for heatmap generation and adopted GradCAM++ as it produced more class-discriminative maps, confirmed by lower deletion AUC scores across our aggregate evaluation. Figure~\ref{fig:top5_heatmaps} shows the five most faithful heatmaps from our test set, selected by lowest deletion AUC. In each case, GradCAM++ correctly highlights the pathological regions rather than healthy tissue or background.
 
 
-%------------------------------------------------------------------------
-\subsection{Color}
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{fig_top5_heatmaps.pdf}
+    \caption{Top row: original images. Bottom row: GradCAM++ overlays with deletion AUC and confidence scores.}
+    \label{fig:top5_heatmaps}
+\end{figure*}
 
-Color is valuable, and will be visible to readers of the electronic copy.
-However ensure that, when printed on a monochrome printer, no important
-information is lost by the conversion to grayscale.
+To validate XAI behaviour beyond individual examples, we conducted an aggregate analysis over a per-crop stratified sample of 678 test images across all 16 crops. We generated GradCAM++ heatmaps for each sample and computed the corresponding deletion AUC, intensity split, and counterfactual testing.
 
-\bibliography{egbib}
+The aggregate deletion AUC was $0.521 \pm 0.218$, which was a substantial improvement over EigenCAM ($0.683 \pm 0.190$); this confirms that GradCAM++ produces more faithful localization for our use case. The per-crop breakdown in~\ref{fig:deletion_auc_per_crop} reveals a biologically coherent pattern: crops with focal lesions such as tomato ($0.362$) and soybean ($0.405$) achieved the lowest AUC scores, so the model's decisions are concentrated on pathological regions. On the other hand, crops such as citrus ($0.689$) and strawberry ($0.678$) showed higher AUC, because their disease signals are distributed across the entire leaf surface.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\linewidth]{fig_deletion_auc_per_crop.pdf}
+    \caption{Per-crop deletion AUC for GradCAM++ heatmaps across 678 test samples.}
+    \label{fig:deletion_auc_per_crop}
+\end{figure}
+
+Intensity analysis across all samples returned a mean attribution split of $62.4\%$ visual and $37.6\%$ semantic. When stratifying by image source (~\ref{tab:intensity_source}), we see that this figure is dependent on dataset composition: PlantVillage and PlantDoc images show high reliance on vision ($77.4\%$ and $77.0\%$), while PlantWild images shift to $46.4\%$, indicating the model gives high importance to the label as a prior when visual evidence is ambiguous under real-world conditions.
+
+\begin{table}
+\centering
+\caption{Intensity split and deletion AUC by image source.}
+\label{tab:intensity_source}
+\begin{tabular}{lccc}
+\hline
+\textbf{Source} & \textbf{n} & \textbf{Visual \%} & \textbf{AUC} \\
+\hline
+PlantVillage & 324 & $77.4 \pm 19.2$ & $0.574 \pm 0.214$ \\
+PlantDoc     & 26  & $77.0 \pm 23.5$ & $0.571 \pm 0.200$ \\
+PlantWild    & 328 & $46.4 \pm 20.2$ & $0.464 \pm 0.208$ \\
+\hline
+\end{tabular}
+\end{table}
+
+The per-crop intensity breakdown in ~\ref{fig:intensity_split} further demonstrates which crops drive semantic reliance. Citrus ($65.8\%$ semantic) and banana ($57.0\%$) show the highest semantic dependence, both of which are predominantly PlantWild-sourced crops with visually complex field backgrounds. In contrast, tomato ($23.5\%$ semantic) and potato ($22.8\%$) are visually dominant, consistent with their large PlantVillage representation and distinct lesion patterns. Apple is a notable outlier at $100\%$ visual attribution, as it is nearly exclusively from PlantVillage where clean backgrounds leave no ambiguity to resolve.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\linewidth]{fig_intensity_split.pdf}
+    \caption{Per-crop visual vs.\ semantic attribution split. Crops with high semantic reliance (citrus, banana, squash, wheat) are predominantly sourced from in-the-wild datasets; visually dominant crops (tomato, potato, apple) are largely PlantVillage-sourced.}
+    \label{fig:intensity_split}
+\end{figure}
+
+Counterfactual robustness testing (in which a wrong crop label was deliberately substituted) yielded a true robustness rate of $61.2\%$ -- that is, in $61.2\%$ of tests the model either retained the exact prediction or predicted a disease that is valid for the correct crop. This suggests that visual features remain the dominant signal for the majority of samples, though the model is not fully robust to incorrect semantic inputs, particularly for in-the-wild imagery.
+
+
+\subsection{Comparison with Methods}
+
+As our dataset is new, comparing our work with current literature is an unfair protocol since they were trained and tested on different datasets. Hence, we selected multiple models that have had historically excellent performance in plant disease classification~\cite{shafay2025recent, pal2025lightweight} while including similar models for image classification allowing us to explore this task beyond literature. various recent significant models in the computer vision field with an emphasis on high performance and parameter optimization. Many of them, For reference, these models directly predict crop and disease in one go, which we accomplished on a flattened version of our dataset where each label is a combination of crop and disease. This has 86 crop-disease combinations as multiple crops may suffer from the same disease. Our results are showcased in Table~\ref{tab:wild_comparison}.
+
+Among higher capacity models, ConvNeXtV2-Tiny, DeiT-Small and ViT-Small win best accuracy around $96.7\%$. However, their numbers of parameters are at least double that of our methodand are not as efficient for the task. Our method achieves a competitive performance of $95.77\%$ while retaining significantly fewer parameters than all the other models here with the exception of a single MobileViT-S, which achives noticeably lower accuracy.
+
+\begin{table}
+\centering
+\caption{Comparison of plant disease detection architectures on our unified benchmark dataset, sorted by parameter count.}
+\label{tab:wild_comparison}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Method} & \textbf{Params} & \textbf{Acc. (\%)} \\
+\hline\hline
+ConvNeXtV2-Tiny~\cite{woo2023convnext} & 27.93M & 96.62 \\
+Swin-Tiny~\cite{liu2021swin} & 27.59M & 95.60 \\
+ResNet-50~\cite{he2016deep} & 23.68M & 94.63 \\
+DeiT-Small~\cite{touvron2021training} & 21.70M & 96.77 \\
+ViT-Small~\cite{dosovitskiy2020image} & 21.70M & 96.67 \\
+FastViT-SA24~\cite{vasu2023fastvit} & 20.62M & 95.75 \\
+LeViT-256~\cite{graham2021levit} & 17.96M & 95.75 \\
+EfficientNet-B4~\cite{tan2019efficientnet} & 17.70M & 94.28 \\
+PVT-v2-B1~\cite{wang2022pvt} & 13.54M & 95.60 \\
+MobileViT-S~\cite{mehta2022} & 4.99M & 94.76 \\
+\hline
+\textbf{Ours (2x MobileViT-S)} & \textbf{9.98M} & \textbf{95.77} \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Conclusion and Future Directions}
+\label{sec:conclusion}
+
+In this paper, we have successfully developed and verified a two-stage multimodal pipeline for the classification of crops and subsequently diseases. We have achieved test accuracies of $98.48\%$ and $96.62\%$, respectively across 16 crops and 54 diseases, as well as $95.77\%$ for the two-stage pipeline. We also leveraged Monte Carlo Dropout to determine reliability of predictions and implemented an explainable AI framework composed of GradCAM++ heatmaps, intensity analysis, counterfactual testing, and deletion metric with AUC. Through this, we have confirmed that the pipeline focuses on the pathological portions of the image, instead of background noise, which offers potential as a useful tool for precision agriculture. Our results show that lightweight pretrained transformers offer an effective and deployable alternative for edge devices, addressing both computational constraints and interpretability demands. We also recommend PlantWorld and its benchmark for future models in this domain.
+
+\subsection{Limitations}
+
+While performance is promising, there are caveats requiring addressing before this is ready for deployment.
+
+\begin{itemize}
+    \item Confusion matrices show that the model struggles to differentiate between visually similar phenotypes, such as "Early Blight" and "Late Blight" in the "Tomato" class. This is likely due to the global attention mechanism inherent in the ViT backbone; while this is effective for structure, this can cause the model to miss small details that separate such similar necrotic patterns.
+    \item The nature of the proposed architecture carries a risk of cascading error dependency. If the first stage misclassifies the crop, the latter stage is more likely to provide an incorrect diagnosis, especially when visual evidence is unclear. This is quantitatively supported by our counterfactual robustness analysis, which found that 38.8\% of predictions flip under a wrong crop label, with the effect most pronounced for in-the-wild imagery where the model relies more heavily on the semantic prior.
+\end{itemize}
+
+\subsection{Future Directions}
+
+We offer avenues for exploration to resolve the limitations.
+\begin{itemize}
+\item A method to mitigate confusion between visually similar diseases is supervised contrastive learning (SupCon), and hence is encouraged to utilize label information to learn more effectively~\cite{khosla2020supervised}.
+\item The late fusion method utilized can be swapped out for the more sophisticated cross-attention mechanisms, where the semantic crop embeddings can query visual features within the transformer layers directly instead of being concatenated. This way, visual attention on the crop type can happen earlier in the process, informing a potentially better decision while also able to reduce complexity as demonstrated by Chen \etal~\cite{Chen_2021_ICCV}.
+\end{itemize}
+
+\bibliography{main}
 \end{document}
