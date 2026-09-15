@@ -1,4 +1,5 @@
 \documentclass{bmvc2k}
+\usepackage{array}
 
 %% Enter your paper number here for the review copy
 \bmvcreviewcopy{??}
@@ -37,7 +38,7 @@
 \maketitle
 
 \begin{abstract}
-Global food security is threatened by a myriad of plant diseases. Unfortunately, manual inspection is highly laborious and time-consuming, so automated detection has been in development. For this, multiple datasets have been developed, but each major one is largely isolated to a single geographical region. Hence, we propose a unified dataset (PlantWorld) consisting of 67,166 images across 16 crops and 54 disease categories, which integrates PlantVillage, PlantWild, and PlantDoc along with label standardization, disease merging, and underrepresented class removal.
+Global food security is threatened by a myriad of plant diseases. Unfortunately, manual inspection is highly laborious and time-consuming, so automated detection has been in development. For this, multiple datasets have been developed, but each major one is largely isolated to a single geographical region. Hence, we propose a unified dataset (PlantWorld) consisting of 65,704 images across 16 crops and 54 disease categories, which integrates PlantVillage, PlantWild, and PlantDoc along with label standardization, disease merging, and underrepresented class removal.
 
 Moreover, existing deep learning solutions focus on crop identification or single-crop disease identification instead of the more realistic multi-crop scenarios. Thus, to demonstrate a use case of the dataset, we show a reference two-stage pipeline trained on PlantWorld, where the first stage is crop identification given an image, while the second stage is disease identification on the image with the identified crop label. Experimental results demonstrate 98.48\% accuracy for crop classification, 96.62\% for disease detection with the true crop label, and 95.77\% for the two-stage pipeline.
 
@@ -89,8 +90,30 @@ Aggregating three independently curated datasets introduces significant label in
 
 {\bf Underrepresented class removal.} Crops with fewer than 500 images across all sources were discarded, as insufficient data precludes reliable classification. This reduced the dataset from the raw aggregate to 16 crops and 54 disease classes. Here, we found that PlantSeg, which we were also considering for inclusion, was found to contain largely underrepresented classes, with the only leftover images already present in PlantWild (by the same authors).
 
-The result is a dataset of 67,166 RGB images whose label space is consistent, biologically meaningful, and tractable for multi-class classification. 
+The result is a dataset of 65,704 RGB images whose label space is consistent, biologically meaningful, and tractable for multi-class classification. Before harmonizing the dataset, there were 181 distinct disease folder names including repetitions across PlantWild (with 115), PlantVillage (38), and PlantDoc (28). By standardizing labels, we obtained 99 names, which were further reducted to a final 52 classes after pruning crops with low image frequencies.
 
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|l|r|l|r|}
+\hline
+Crop & Image Count & Crop & Image Count \\
+\hline\hline
+Apple       & 4{,}027  & Potato     & 2{,}774  \\
+Banana      & 573      & Raspberry  & 620      \\
+Blueberry   & 1{,}831  & Soybean    & 5{,}943  \\
+Cherry      & 2{,}103  & Squash     & 2{,}591  \\
+Citrus      & 6{,}030  & Strawberry & 1{,}758  \\
+Corn        & 4{,}846  & Tomato     & 19{,}965 \\
+Grape       & 4{,}781  & Wheat      & 1{,}792  \\
+Peach       & 3{,}223  &            &          \\
+Pepper bell & 2{,}847  & \textbf{Total} & \textbf{65{,}704} \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Image Count per Crop in PlantWorld.}
+\label{tab:dataset_dist}
+\end{table}
 
 \begin{figure}
   \centering
@@ -99,40 +122,58 @@ The result is a dataset of 67,166 RGB images whose label space is consistent, bi
   \label{fig:dataset_samples}
 \end{figure}
 
+
+
 \subsection{Dataset Statistics and Imbalance}
 
 The distribution of images per crop is shown in Table~\ref{tab:dataset_dist}. The dataset is substantially imbalanced: Tomato contributes 20,455 images while Raspberry contributes only 620, a ratio of 33:1. This long-tail distribution reflects the underlying imbalance in publicly available agricultural imagery and motivates the imbalance-handling strategies described later.
 
+
+Table~\ref{tab:disease_span} describes how the 52 diseases are distributed in our dataset. The class most prevalent in crops, unsurprisingly, is the {\em healthy} disease class at 12. Many of these diseases were aggregated across the parent datasets; one example is {\em scab} which combines {\em apple\_scab} (PlantVillage), {\em Apple\_Scab\_Leaf} (PlantDoc), {\em apple scab} (PlantWild), and {\em peach scab} (PlantWild). It must be noted that merging was done on the basis of visual-phenotype grouping and string normalization; it follows that the disease's pathogen type is not tracked here, which is, admittedly, a limitation of our dataset. Meanwhile, in terms of crop variety per disease class, 38 span exactly one crop whereas the rest exist in more than one crop. While not to the extent of the crop classes, the disease classes suffer from a long-tailed distribution as well, with {\em healthy} comprising 24\% of the dataset (15,907 images) while diseases such as {\em fire blight} only have 34 images. Further details about the full dataset shall be made available in its public release.
+
 \begin{table}
-\begin{center}
-\begin{tabular}{|l|c|l|c|}
+\centering
+\caption{Diseases in PlantWorld. PV/PD/PW are PlantVillage, PlantDoc, and PlantWild.}
+\label{tab:disease_span}
+\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{1.9cm} c >{\raggedright\arraybackslash}p{4.0cm} r r r r}
 \hline
-Crop & Image Count & Crop & Image Count \\
+\textbf{Unified class} & \textbf{\# crops} & \textbf{Crops} & \textbf{Total} & \textbf{PV} & \textbf{PD} & \textbf{PW} \\
 \hline\hline
-Apple       & 4027  & Potato    & 2774  \\
-Banana      & 795   & Raspberry & 620   \\
-Blueberry   & 1831  & Soybean   & 6181  \\
-Cherry      & 2103  & Squash    & 2591  \\
-Citrus      & 6030  & Strawberry& 1758  \\
-Corn        & 5150  & Tomato    & 20455 \\
-Grape       & 4781  & Wheat     & 1909  \\
-Peach       & 3223  &           &       \\
-Pepper bell & 2878  & Total     & 67166 \\
+healthy         & 12 & apple, blueberry, cherry, corn, grape, peach, pepper\_bell, potato, raspberry, soybean, strawberry, tomato & 15{,}907 & 15{,}084 & 823 & 0 \\
+bacterial\_spot & 2  & peach, tomato                                & 4{,}644 & 4{,}424 & 110 & 110 \\
+powdery\_mildew & 4  & cherry, pepper\_bell, squash, wheat          & 3{,}754 & 2{,}887 & 130 & 737 \\
+late\_blight    & 2  & potato, tomato                               & 3{,}508 & 2{,}909 & 319 & 280 \\
+early\_blight   & 2  & potato, tomato                               & 2{,}572 & 2{,}000 & 259 & 313 \\
+rust            & 5  & apple, blueberry, corn, peach, soybean       & 2{,}176 & 1{,}467 & 223 & 486 \\
+black\_rot      & 2  & apple, grape                                 & 2{,}085 & 1{,}801 & 79  & 205 \\
+spot            & 4  & cherry, grape, pepper\_bell, raspberry       & 1{,}373 & 997     & 83  & 293 \\
+scorch          & 2  & blueberry, strawberry                        & 1{,}191 & 1{,}109 & 0   & 82 \\
+scab            & 2  & apple, peach                                 & 1{,}059 & 630     & 93  & 336 \\
+mosaic\_virus   & 2  & apple, tomato                                & 579     & 373     & 54  & 152 \\
+downy\_mildew   & 3  & grape, soybean, squash                       & 479     & 0       & 0   & 479 \\
+frogeye\_spot   & 2  & pepper\_bell, soybean                        & 269     & 0       & 0   & 269 \\
+anthracnose     & 4  & banana, blueberry, peach, strawberry         & 184     & 0       & 0   & 184 \\
+\hline
+\textit{38 single-crop classes} & \textit{1} & \textit{crop-specific} & 25{,}924 & 20{,}624 & 749 & 4{,}551 \\
+\hline
+\textbf{Total} & & & \textbf{65{,}704} & \textbf{54{,}305} & \textbf{2{,}922} & \textbf{8{,}477} \\
 \hline
 \end{tabular}
-\end{center}
-\caption{Image Count per Crop in the Unified Dataset.}
-\label{tab:dataset_dist}
 \end{table}
+
+
+
+% ---------------------------------------------------------------
+\section{Reference Pipeline}
+\label{sec:method}
 
 \subsection{Data Preprocessing and Enhancement}
 Given the variety in image resolution, first we resize and center-crop every image to $224 \times 224$. The rationale for this dimension is that it is the standard input dimension accepted by the ViTs we elaborate on later.
 
 After that, to prevent the model overfitting during training on the low-frequency cases, we augment the data using random flipping, rotations within 15 degrees, and color jitter; all these are possible cases when taking photos of crops in the field. This is applied both during training for crops and training for disease. Stratified splits were done after dataset aggregation to prevent data leakage.
 
-% ---------------------------------------------------------------
-\section{Reference Pipeline}
-\label{sec:method}
+ In our case, we make use of a stratified 70/15/15 split by disease label. With a static random seed, first the dataset is split 70/30 where 70\% is the train split. Then, the remainder 30\% is halved into 15\% validation and 15\% test. We use stratification because of the aforementioned long-tail distribution above, since it may be the case that rare classes may be present in only one partition thus hindering training effectiveness. As the two stages of our reference pipeline are trained independently of one another, the splits too are created independently depending on the task. Importantly, PlantWorld's release does not include the train/validation/test splits. This is to give users of our dataset the liberty to define splits as per what their tasks require.
 
 \subsection{Crop Detection}
 
