@@ -41,7 +41,7 @@ Global food security is threatened by a myriad of plant diseases. Unfortunately,
 
 Moreover, existing deep learning solutions focus on crop identification or single-crop disease identification instead of the more realistic multi-crop scenarios. Thus, to demonstrate a use case of the dataset, we show a reference two-stage pipeline trained on PlantWorld, where the first stage is crop identification given an image, while the second stage is disease identification on the image with the identified crop label. Experimental results demonstrate 98.48\% accuracy for crop classification, 96.62\% for disease detection with the true crop label, and 95.77\% for the two-stage pipeline.
 
-Alongside the dataset, an explainable AI framework was also developed, including heatmap generation and intensity analysis to determine usage of features, showing that the system indeed prioritizes pathological lesions over background noise.
+Alongside the dataset, an explainable AI framework was also developed, including heatmap generation and intensity analysis to determine usage of features, so that model performance can be analyzed beyond the accuracy metrics.
 \end{abstract}
 
 %-------------------------------------------------------------------------
@@ -53,13 +53,13 @@ To automate this, machine learning models have been most effective. However, the
 
 This work involves disease detection for multiple crops, an emerging area stemming from the work of single-crop based disease classifiers. Particularly, the application of choice is disease detection at the ground-level, which complements aerial field monitoring and thus is necessary in practical deployment. Moreover, little research has focused on explaining the final classification output and visualizing where in the image is the plant disease detected~\cite{kaler2025}. 
 
-Thus, the main purpose of this paper is to introduce PlantWorld: a unified plant disease dataset which combines, standardizes labels, and cleans images taken from multiple existing plant disease datasets. This dataset will be released publicly after publication of this paper. To demonstrate usage, we show a two-stage pipeline which, given an image of a crop, accurately identifies its crop label and subsequently identifies its disease label if present. Additionally, we also apply an XAI framework that can be used to evaluate the models trained on the dataset, so that the factors driving the output of the models can be investigated and verified.  
+Thus, the main purpose of this paper is to introduce PlantWorld: a unified plant disease dataset which combines, standardizes labels, and cleans images taken from multiple existing plant disease datasets. This dataset will be publicly released upon publication. To demonstrate usage, we show a two-stage pipeline which, given an image of a crop, accurately identifies its crop label and subsequently identifies its disease label if present. Additionally, we also apply an XAI framework that can be used to evaluate the models trained on the dataset, so that the factors driving the output of the models can be investigated and verified.  
 
 % ---------------------------------------------------------------
 \section{Literature Review}
 \label{sec:lit}
 
-Our work builds upon recent advancements in computer vision for agriculture. We reviewed contemporary papers to situate our approach, focusing on model architectures, mobile deployment, and dataset creation. Notably, in our review, a neglected area exists within these advancements in not just generalizing crop disease detection for a wide range of crops but also to explain such prediction.
+Our work builds upon recent advancements in computer vision for agriculture. We reviewed contemporary papers to situate our approach, focusing on model architectures, dataset creation, disease detection, and XAI methods. Notably, in our review, a neglected area exists within these advancements in not just generalizing crop disease detection for a wide range of crops but also to explain such prediction.
 
 On dataset curation, significant development has been achieved beyond the foundational PlantVillage dataset~\cite{mohanty2016}, which contains only images taken in a lab setting. For instance, the PlantDoc dataset aimed to curate real-life images of plants, although it focused only on Indian crops~\cite{singh2020}. As a result, datasets PlantWild and PlantSeg were introduced by Wei \etal~\cite{wei2024a, wei2024b} which not only included images of crops in the wild but also upheld a large variety of crops and their diseases. Another important dataset of more than 2000 original high quality images is presented by Bishshash et al.~\cite{bishshash2024}, though they restrict their focus to cotton crops only.
 
@@ -69,7 +69,7 @@ Regarding crop disease detection, Hepsağ~\cite{hepsag2023} used a few-shot lear
 
 On the subject of mobile deployment, Sharma \etal~\cite{sharma2025} utilized a combination of MobileNetV2 and ResNet50, which is a model with an optimized number of parameters while achieving over 99\% F1-score on tomato crop detection. Another such example is Liu \etal~\cite{liu2025} who proposed RicePest-YOLO, an enhanced lightweight YOLOv8-based model in order to detect rice pest images. They reported a mean average precision (mAP@0.5) of 94.3\% and mAP@0.5:0.95 of 67.3\%. However, both could have been expanded to other crops as well, and do not discuss explainability of such models.
 
-Crucially, since the output of the model impacts decisions for agriculturists, they need to also know how the model arrived at a decision, instead of relying on a black box that is not guaranteed to always be correct. Thus, there has been recent research on XAI as a means of transparency for crop disease detection. Nigar \etal~\cite{nigar2024} used Local Interpretable Model-agnostic Explanations (LIME) to visualize the output for their CNN models which had achieved a best accuracy of 99.69\%; however, this analysis was limited to the PlantVillage dataset which is restricted to clean lab photographs, reducing the model's applicability to realistic scenarios in the wild. XAI in general faces many obstacles when integrated to plant disease detection algorithms as detailed upon by Kaler and Kaur~\cite{kaler2025}. They attribute this difficulty to dataset quality, lack of interpretability in complex models particularly transformers, scalability in agricultural systems, and computational constraints.
+Crucially, since the output of the model impacts decisions for farmers, they need to also know how the model arrived at a decision, instead of relying on a black box that is not guaranteed to always be correct. Thus, there has been recent research on XAI as a means of transparency for crop disease detection. Nigar \etal~\cite{nigar2024} used Local Interpretable Model-agnostic Explanations (LIME) to visualize the output for their CNN models which had achieved a best accuracy of 99.69\%; however, this analysis was limited to the PlantVillage dataset which is restricted to clean lab photographs, reducing the model's applicability to realistic scenarios in the wild. XAI in general faces many obstacles when integrated to plant disease detection algorithms as detailed upon by Kaler and Kaur~\cite{kaler2025}. They attribute this difficulty to dataset quality, lack of interpretability in complex models particularly transformers, scalability in agricultural systems, and computational constraints.
 
 % ---------------------------------------------------------------
 \section{Dataset Curation}
@@ -77,7 +77,7 @@ Crucially, since the output of the model impacts decisions for agriculturists, t
 
 A robust and diverse dataset is the foundation of our project. The overwhelming majority of papers in crop disease detection use the PlantVillage dataset. However, as stated in our literature review, its images are all taken in a lab setting, which limits model generalizability. Alternatives exist, but each has its own biases; for instance, PlantDoc focuses on Indian crops, while PlantWild only includes Chinese plants. PlantSeg is the exception, but multiple crops contain too few images for an image classifier to work without overfitting.
 
-Thus, as our first major contribution, we created a unified plant disease dataset, named PlantWorld, by aggregating images from three geographically diverse public sources: PlantVillage (America), PlantDoc (India), and PlantWild (China). This includes not just clean images taken in the laboratory but also wild imagery under varying lighting conditions, backgrounds, and camera angles -- precisely what is encountered in deployment.
+Thus, we created a unified plant disease dataset, named PlantWorld, by aggregating images from three geographically diverse public sources: PlantVillage (America), PlantDoc (India), and PlantWild (China). This includes not just clean images taken in the laboratory but also wild imagery under varying lighting conditions, backgrounds, and camera angles -- precisely what is encountered in deployment.
 
 \subsection{Taxonomic Harmonization}
 
@@ -125,18 +125,10 @@ Pepper bell & 2878  & Total     & 67166 \\
 \label{tab:dataset_dist}
 \end{table}
 
-With reference to this dataset, the pipeline is:
-\begin{itemize}
-    \item {\bf Input:} An image of a plant.
-    \item {\bf Stage 1 Output (Crop):} One of 16 coarse labels for crops.
-    \item {\bf Stage 2 Output (Disease):} One of 54 disease condition labels.
-    \item {\bf XAI:} The image with disease area highlighted and analysis displayed.
-\end{itemize}
-
 \subsection{Data Preprocessing and Enhancement}
 Given the variety in image resolution, first we resize and center-crop every image to $224 \times 224$. The rationale for this dimension is that it is the standard input dimension accepted by the ViTs we elaborate on later.
 
-After that, to prevent the model overfitting during training on the low-frequency cases, we augment the data using random flipping, rotations within 15 degrees, and color jitter; all these are possible cases when taking photos of crops in the field. This is applied both during training for crops and training for disease. Splits were done after dataset aggregation to prevent data leakage.
+After that, to prevent the model overfitting during training on the low-frequency cases, we augment the data using random flipping, rotations within 15 degrees, and color jitter; all these are possible cases when taking photos of crops in the field. This is applied both during training for crops and training for disease. Stratified splits were done after dataset aggregation to prevent data leakage.
 
 % ---------------------------------------------------------------
 \section{Reference Pipeline}
@@ -144,7 +136,7 @@ After that, to prevent the model overfitting during training on the low-frequenc
 
 \subsection{Crop Detection}
 
-This is the first stage in our reference pipeline. We opted for ViTs, which have shown great success in other fields, but have seen limited application in multi-label crop disease classification as noted by Thakur \etal~\cite{thakur2022plantvit}. Specifically, we selected MobileViT by Mehta and Rastegari~\cite{mehta2022}, a hybrid neural network that combines the efficiency and local inductive bias of CNNs with the global reasoning capabilities of transformers. This is critical to capture local patterns of crops, while maintaining the global context of the plant.
+This is the first stage in our reference pipeline. We opted for ViTs, which have shown great success in other fields, but have seen limited application in crop and disease classification as noted by Thakur \etal~\cite{thakur2022plantvit}. Specifically, we selected MobileViT by Mehta and Rastegari~\cite{mehta2022}, a hybrid neural network that combines the efficiency and local inductive bias of CNNs with the global reasoning capabilities of transformers. This is critical to capture local patterns of crops, while maintaining the global context of the plant.
 
 The variant selected was MobileViT-S -- pretrained on ImageNet-1k under 300 epochs -- which has 4.99M parameters; this is significantly smaller than ViT-Base, which has 86M parameters. Furthermore, MobileViT-S is more applicable towards edge computing while maintaining impressive accuracies as seen in examples like MobilePlantViT~\cite{tonmoy2025mobileplantvit}.
 
@@ -235,12 +227,12 @@ Moreover, since the major use case of this system is deployment in budget smartp
 
 With Monte Carlo Dropout, we stratified test predictions by estimating the entropy from the stochastic passes; if the entropy is below 0.5, we defined it to be a confident prediction. Our analysis revealed that 81\% of the test data was flagged as confident, where the model achieved 99.92\% accuracy. The remaining 19\% images were correctly flagged as uncertain, with a respective accuracy of 82.47\%; hence, in deployment, the system could defer these cases to human experts.
 
-To test XAI capabilities, we evaluated both EigenCAM and GradCAM++ for heatmap generation and adopted GradCAM++ as it produced more class-discriminative maps, confirmed by lower deletion AUC scores across our aggregate evaluation. Figure~\ref{fig:top5_heatmaps} shows the five most faithful heatmaps from our test set, selected by lowest deletion AUC. In each case, GradCAM++ correctly highlights the pathological regions rather than healthy tissue or background.
+To test XAI capabilities, we evaluated both EigenCAM and GradCAM++ for heatmap generation and adopted GradCAM++ as it produced more class-discriminative maps, confirmed by lower deletion AUC scores across our aggregate evaluation. Figure~\ref{fig:top5_heatmaps} shows the five most faithful heatmaps from the diseased images of our test set (since the healthy images do not involve lesion localization), selected by lowest deletion AUC. In most cases, the heatmaps show the model focusing on the crop leaves (with the exception of the bottom right corner of image 4). Since the AUC is extremely low, the prediction likely depends on not just the diseased lesion but a large area surrounding it, which warrants further investigation.
 
 
-\begin{figure*}[ht]
+\begin{figure*}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{fig_top5_heatmaps.pdf}
+    \includegraphics[width=0.9\textwidth]{images/fig_top5_heatmaps.pdf}
     \caption{Top row: original images. Bottom row: GradCAM++ overlays with deletion AUC and confidence scores.}
     \label{fig:top5_heatmaps}
 \end{figure*}
@@ -320,7 +312,7 @@ Reference (2x MobileViT-S) & 9.98M & 95.77 \\
 \section{Conclusion and Future Directions}
 \label{sec:conclusion}
 
-In this paper, we have presented PlantWorld as a unification of foundational datasets for crop and disease identification, with taxonomic harmonization. We also provide an XAI framework, leveraging Monte Carlo Dropout for uncertainty, GradCAM++ for heatmaps, intensity analysis for feature attribution, counterfactual testing, and deletion AUC for robustness. Through this, we can investigate whether a model focuses on the pathological portions of the image, instead of background noise, which offers potential as a useful tool for precision agriculture. We have also benchmarked multiple models, including a reference pipeline as a baseline for comparison. We recommend PlantWorld and its benchmark for future models in this domain.
+In this paper, we have presented PlantWorld as a unification of foundational datasets for crop and disease identification, with taxonomic harmonization. We also provide an XAI framework, leveraging Monte Carlo Dropout for uncertainty, GradCAM++ for heatmaps, intensity analysis for feature attribution, counterfactual testing, and deletion AUC for robustness. Through this, we can investigate whether a model focuses on the correct portions of the image, instead of background noise, which offers potential as a useful tool for precision agriculture. We have also benchmarked multiple models, including a reference pipeline as a baseline for comparison. We recommend PlantWorld and its benchmark for future models in this domain.
 
 \subsection{Limitations}
 
