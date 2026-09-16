@@ -38,7 +38,7 @@
 \maketitle
 
 \begin{abstract}
-Global food security is threatened by a myriad of plant diseases. Unfortunately, manual inspection is highly laborious and time-consuming, so automated detection has been in development. For this, multiple datasets have been developed, but each major one is largely isolated to a single geographical region. Hence, we propose a unified dataset (PlantWorld) consisting of 65,704 images across 16 crops and 54 disease categories, which integrates PlantVillage, PlantWild, and PlantDoc along with label standardization, disease merging, and underrepresented class removal.
+Global food security is threatened by a myriad of plant diseases. Unfortunately, manual inspection is highly laborious and time-consuming, so automated detection has been in development. For this, multiple datasets have been developed, but each major one is largely isolated to a single geographical region. Hence, we propose a unified dataset (PlantWorld) consisting of 65,704 images across 16 crops and 52 disease categories, which integrates PlantVillage, PlantWild, and PlantDoc along with label standardization, disease merging, and underrepresented class removal.
 
 Moreover, existing deep learning solutions focus on crop identification or single-crop disease identification instead of the more realistic multi-crop scenarios. Thus, to demonstrate a use case of the dataset, we show a reference two-stage pipeline trained on PlantWorld, where the first stage is crop identification given an image, while the second stage is disease identification on the image with the identified crop label. Experimental results demonstrate 98.48\% accuracy for crop classification, 96.62\% for disease detection with the true crop label, and 95.77\% for the two-stage pipeline.
 
@@ -88,12 +88,22 @@ Aggregating three independently curated datasets introduces significant label in
 
 {\bf Disease merging.} Several sources subdivided diseases at a finer granularity than is practically distinguishable from field imagery. For example, multiple {\em scab} subtypes appearing across sources were merged into a single class, as their visual phenotypes overlap significantly, so training on these underrepresented subtypes risks overfitting. Similar merges were applied across other disease families.
 
-{\bf Underrepresented class removal.} Crops with fewer than 500 images across all sources were discarded, as insufficient data precludes reliable classification. This reduced the dataset from the raw aggregate to 16 crops and 54 disease classes. Here, we found that PlantSeg, which we were also considering for inclusion, was found to contain largely underrepresented classes, with the only leftover images already present in PlantWild (by the same authors).
+{\bf Underrepresented class removal.} Crops with fewer than 500 images across all sources were discarded, as insufficient data precludes reliable classification. This reduced the dataset from the raw aggregate to 16 crops and 52 disease classes. Here, we found that PlantSeg, which we were also considering for inclusion, was found to contain largely underrepresented classes, with the only leftover images already present in PlantWild (by the same authors).
 
-The result is a dataset of 65,704 RGB images whose label space is consistent, biologically meaningful, and tractable for multi-class classification. Before harmonizing the dataset, there were 181 distinct disease folder names including repetitions across PlantWild (with 115), PlantVillage (38), and PlantDoc (28). By standardizing labels, we obtained 99 names, which were further reducted to a final 52 classes after pruning crops with low image frequencies.
+The result is a dataset of 65,704 RGB images whose label space is consistent, biologically meaningful, and tractable for multi-class classification. Before harmonizing the dataset, there were 181 distinct disease folder names including repetitions across PlantWild (with 115), PlantVillage (38), and PlantDoc (28). By standardizing labels, we obtained 99 names, which were further reduced to a final 52 classes after pruning crops with low image frequencies.
 
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.6\columnwidth]{dataset_sample_grid.png}
+  \caption{Samples from PlantWorld, showing diversity across crops (rows) and diseases (columns). This highlights the mix of `in-the-wild' images and lab-based images.}
+  \label{fig:dataset_samples}
+\end{figure}
 
-\begin{table}
+\subsection{Dataset Statistics and Imbalance}
+
+The distribution of images per crop is shown in Table~\ref{tab:dataset_dist}. The dataset is substantially imbalanced: Tomato contributes 19,965 images while Raspberry contributes only 620, a ratio of 32:1. This long-tail distribution reflects the underlying imbalance in publicly available agricultural imagery and motivates the imbalance-handling strategies described later.
+
+\begin{table}[h]
 \begin{center}
 \begin{tabular}{|l|r|l|r|}
 \hline
@@ -115,28 +125,14 @@ Pepper bell & 2{,}847  & \textbf{Total} & \textbf{65{,}704} \\
 \label{tab:dataset_dist}
 \end{table}
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.6\columnwidth]{dataset_sample_grid.png}
-  \caption{Samples from PlantWorld, showing diversity across crops (rows) and diseases (columns). This highlights the mix of `in-the-wild' images and lab-based images.}
-  \label{fig:dataset_samples}
-\end{figure}
+Table~\ref{tab:disease_span} describes how the 52 diseases are distributed in our dataset. The class present across the most crops, unsurprisingly, is the {\em healthy} disease class at 12; it is also the single largest class overall with 15,907 images. Many of these diseases were aggregated across the parent datasets; one example is {\em scab} which combines {\em apple\_scab} (PlantVillage), {\em Apple\_Scab\_Leaf} (PlantDoc), {\em apple scab} (PlantWild), and {\em peach scab} (PlantWild). It must be noted that merging was done on the basis of visual-phenotype grouping and string normalization; it follows that the disease's pathogen type is not tracked here. Meanwhile, in terms of crop variety per disease class, 38 span exactly one crop whereas the rest exist in more than one crop. While not to the extent of the crop classes, the disease classes suffer from a long-tailed distribution as well, with {\em healthy} comprising 24\% of the dataset (15,907 images) while diseases such as {\em fire blight} only have 34 images. This is inherited from the datasets that make up this unified dataset, and may be a reflection of the actual prevalence of these diseases in the wild.
 
-
-
-\subsection{Dataset Statistics and Imbalance}
-
-The distribution of images per crop is shown in Table~\ref{tab:dataset_dist}. The dataset is substantially imbalanced: Tomato contributes 20,455 images while Raspberry contributes only 620, a ratio of 33:1. This long-tail distribution reflects the underlying imbalance in publicly available agricultural imagery and motivates the imbalance-handling strategies described later.
-
-
-Table~\ref{tab:disease_span} describes how the 52 diseases are distributed in our dataset. The class most prevalent in crops, unsurprisingly, is the {\em healthy} disease class at 12. Many of these diseases were aggregated across the parent datasets; one example is {\em scab} which combines {\em apple\_scab} (PlantVillage), {\em Apple\_Scab\_Leaf} (PlantDoc), {\em apple scab} (PlantWild), and {\em peach scab} (PlantWild). It must be noted that merging was done on the basis of visual-phenotype grouping and string normalization; it follows that the disease's pathogen type is not tracked here, which is, admittedly, a limitation of our dataset. Meanwhile, in terms of crop variety per disease class, 38 span exactly one crop whereas the rest exist in more than one crop. While not to the extent of the crop classes, the disease classes suffer from a long-tailed distribution as well, with {\em healthy} comprising 24\% of the dataset (15,907 images) while diseases such as {\em fire blight} only have 34 images. Further details about the full dataset shall be made available in its public release.
-
-\begin{table}
+\begin{table}[h]
 \centering
 \caption{Diseases in PlantWorld. PV/PD/PW are PlantVillage, PlantDoc, and PlantWild.}
 \label{tab:disease_span}
 \small
-\begin{tabular}{>{\raggedright\arraybackslash}p{1.9cm} c >{\raggedright\arraybackslash}p{4.0cm} r r r r}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.2cm} c >{\raggedright\arraybackslash}p{3.6cm} r r r r}
 \hline
 \textbf{Unified class} & \textbf{\# crops} & \textbf{Crops} & \textbf{Total} & \textbf{PV} & \textbf{PD} & \textbf{PW} \\
 \hline\hline
@@ -191,7 +187,7 @@ Finally, both vectors are fused to form a 672-dim state vector. We then perform 
 
 \subsection{Implementation Details}
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.75\linewidth]{architecture3.png}
     \caption{Overview of the two-stage architecture, demonstrating the fusion of crop predictions with visual features.}
@@ -238,7 +234,7 @@ The model was then tested on the test split, which yielded a final top-1 accurac
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.9\columnwidth]{Screenshot_20251209_222538.png}
+  \includegraphics[width=0.8\columnwidth]{Screenshot_20251209_222538.png}
   \caption{Confusion matrix for crop detection.}
   \label{fig:crop_cm}
 \end{figure}
@@ -247,16 +243,16 @@ The model was then tested on the test split, which yielded a final top-1 accurac
 
 The disease detection was also successful. The model showed high generalization on the test set, with a final test accuracy of $96.62\%$ and a test loss of $0.0496$, which is competitive with figures presented by literature for disease classifiers of single crops. The model converged in 16 epochs, with divergence occurring thereafter in test loss, so early stopping was triggered.
 
+During testing, we were interested in the robustness of the model across the biological domains of the crops. Hence, the confusion matrices of the four most populous crops were generated as seen in Figure~\ref{fig:dismat}. Strong diagonal dominance is observed in all four matrices, with the predicted label matching generally with the true label. The few instances of off-diagonal elements were noted to be due to visually similar diseases within a single crop (e.g. "early blight" versus "late blight"), not because of model confusion over disparate conditions.
+
+To validate the contribution of the crop embedding in Stage 2, we trained an image-only baseline using an identical MobileViT-S backbone and classifier but without the learnable crop embedding, operating on the same 52 disease classes. The image-only baseline achieved $94.90\%$ test accuracy compared to $96.62\%$ for the fusion model, a drop of $1.72$ percentage points attributable solely to excluding the crop embedding. Hence, the semantic crop prior provides meaningful information which is not otherwise present in the visual features, particularly for shared disease conditions such as {\em early\_blight} which manifest similarly across crops but benefit from knowing which crop is under inspection. Moreover, we also noted that the fusion model converged at epoch 17, while the baseline needed till epoch 20, so the crop embedding may also be simplifying optimization.
+
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.9\textwidth]{disease_matrices.pdf}
+    \includegraphics[width=0.8\textwidth]{disease_matrices.pdf}
     \caption{Confusion matrices of four crops: Tomato, Wheat, Apple, and Grape.}
     \label{fig:dismat}
 \end{figure}
-
-During testing, we were interested in the robustness of the model across the biological domains of the crops. Hence, the confusion matrices of the four most populous crops were generated as seen in~\ref{fig:dismat}. Strong diagonal dominance is observed in all four matrices, with the predicted label matching generally with the true label. The few instances of off-diagonal elements were noted to be due to visually similar diseases within a single crop (e.g. "early blight" versus "late blight"), not because of model confusion over disparate conditions.
-
-To validate the contribution of the crop embedding in Stage 2, we trained an image-only baseline using an identical MobileViT-S backbone and classifier but without the learnable crop embedding, operating on the same 54 disease classes. The image-only baseline achieved $94.90\%$ test accuracy compared to $96.62\%$ for the fusion model, a drop of $1.72$ percentage points attributable solely to excluding the crop embedding. Hence, the semantic crop prior provides meaningful information which is not otherwise present in the visual features, particularly for shared disease conditions such as {\em early\_blight} which manifest similarly across crops but benefit from knowing which crop is under inspection. Moreover, we also noted that the fusion model converged at epoch 17, while the baseline needed till epoch 20, so the crop embedding may also be simplifying optimization.
 
 \subsection{Two-Stage Pipeline Results}
 
@@ -268,7 +264,7 @@ Moreover, since the major use case of this system is deployment in budget smartp
 
 With Monte Carlo Dropout, we stratified test predictions by estimating the entropy from the stochastic passes; if the entropy is below 0.5, we defined it to be a confident prediction. Our analysis revealed that 81\% of the test data was flagged as confident, where the model achieved 99.92\% accuracy. The remaining 19\% images were correctly flagged as uncertain, with a respective accuracy of 82.47\%; hence, in deployment, the system could defer these cases to human experts.
 
-To test XAI capabilities, we evaluated both EigenCAM and GradCAM++ for heatmap generation and adopted GradCAM++ as it produced more class-discriminative maps, confirmed by lower deletion AUC scores across our aggregate evaluation. Figure~\ref{fig:top5_heatmaps} shows the five most faithful heatmaps from the diseased images of our test set (since the healthy images do not involve lesion localization), selected by lowest deletion AUC. In most cases, the heatmaps show the model focusing on the crop leaves (with the exception of the bottom right corner of image 4). Since the AUC is extremely low, the prediction likely depends on not just the diseased lesion but a large area surrounding it, which warrants further investigation.
+To test XAI capabilities, we evaluated both EigenCAM and GradCAM++ for heatmap generation and adopted GradCAM++ as it produced more class-discriminative maps, confirmed by lower deletion AUC scores across our aggregate evaluation. Figure~\ref{fig:top5_heatmaps} shows the five most faithful heatmaps from the diseased images of our test set (since the healthy images do not involve lesion localization), selected by lowest deletion AUC. In most cases, the heatmaps show the model focusing on the crop leaves (with the exception of the bottom right corner of image 4). Since the AUC is extremely low, the prediction likely depends on not just the diseased lesion but the area surrounding it, which warrants further investigation.
 
 
 \begin{figure*}[h]
@@ -280,9 +276,9 @@ To test XAI capabilities, we evaluated both EigenCAM and GradCAM++ for heatmap g
 
 To validate XAI behaviour beyond individual examples, we conducted an aggregate analysis over a per-crop stratified sample of 678 test images across all 16 crops. We generated GradCAM++ heatmaps for each sample and computed the corresponding deletion AUC, intensity split, and counterfactual testing.
 
-The aggregate deletion AUC was $0.521 \pm 0.218$, which was a substantial improvement over EigenCAM ($0.683 \pm 0.190$); this confirms that GradCAM++ produces more faithful localization for our use case. The per-crop breakdown in~\ref{fig:deletion_auc_per_crop} reveals a biologically coherent pattern: crops with focal lesions such as tomato ($0.362$) and soybean ($0.405$) achieved the lowest AUC scores, so the model's decisions are concentrated on pathological regions. On the other hand, crops such as citrus ($0.689$) and strawberry ($0.678$) showed higher AUC, because their disease signals are distributed across the entire leaf surface.
+The aggregate deletion AUC was $0.521 \pm 0.218$, which was a substantial improvement over EigenCAM ($0.683 \pm 0.190$); this confirms that GradCAM++ produces more faithful localization for our use case. The per-crop breakdown in Figure~\ref{fig:deletion_auc_per_crop} reveals a biologically coherent pattern: crops with focal lesions such as tomato ($0.362$) and soybean ($0.405$) achieved the lowest AUC scores, so the model's decisions are concentrated on pathological regions. On the other hand, crops such as citrus ($0.689$) and strawberry ($0.678$) showed higher AUC, because their disease signals are distributed across the entire leaf surface.
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.7\linewidth]{fig_deletion_auc_per_crop.pdf}
     \caption{Per-crop deletion AUC for GradCAM++ heatmaps across 678 test samples.}
@@ -291,7 +287,7 @@ The aggregate deletion AUC was $0.521 \pm 0.218$, which was a substantial improv
 
 Intensity analysis across all samples returned a mean attribution split of $62.4\%$ visual and $37.6\%$ semantic. When stratifying by image source (\ref{tab:intensity_source}), we see that this figure is dependent on dataset composition: PlantVillage and PlantDoc images show high reliance on vision ($77.4\%$ and $77.0\%$), while PlantWild images shift to $46.4\%$, indicating the model gives high importance to the label as a prior when visual evidence is ambiguous under real-world conditions.
 
-\begin{table}
+\begin{table}[h]
 \centering
 \caption{Intensity split and deletion AUC by image source.}
 \label{tab:intensity_source}
@@ -306,9 +302,9 @@ PlantWild    & 328 & $46.4 \pm 20.2$ & $0.464 \pm 0.208$ \\
 \end{tabular}
 \end{table}
 
-The per-crop intensity breakdown in \ref{fig:intensity_split} further demonstrates which crops drive semantic reliance. Citrus ($65.8\%$ semantic) and banana ($57.0\%$) show the highest semantic dependence, both of which are predominantly PlantWild-sourced crops with visually complex field backgrounds. In contrast, tomato ($23.5\%$ semantic) and potato ($22.8\%$) are visually dominant, consistent with their large PlantVillage representation and distinct lesion patterns. Apple is a notable outlier at $100\%$ visual attribution, as it is nearly exclusively from PlantVillage where clean backgrounds leave no ambiguity to resolve.
+The per-crop intensity breakdown in Figure \ref{fig:intensity_split} further demonstrates which crops drive semantic reliance. Citrus ($65.8\%$ semantic) and banana ($57.0\%$) show the highest semantic dependence, both of which are predominantly PlantWild-sourced crops with visually complex field backgrounds. In contrast, tomato ($23.5\%$ semantic) and potato ($22.8\%$) are visually dominant, consistent with their large PlantVillage representation and distinct lesion patterns. Apple is a notable outlier at $100\%$ visual attribution, as it is nearly exclusively from PlantVillage where clean backgrounds leave no ambiguity to resolve.
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.7\linewidth]{fig_intensity_split.pdf}
     \caption{Per-crop visual vs.\ semantic attribution split. Crops with high semantic reliance (citrus, banana, squash, wheat) are predominantly sourced from in-the-wild datasets; visually dominant crops (tomato, potato, apple) are largely PlantVillage-sourced.}
@@ -322,11 +318,7 @@ Counterfactual robustness testing (in which a wrong crop label was deliberately 
 
 As our dataset is new, comparison with current literature is unfair since they were trained and tested on different datasets. Hence, we selected multiple models that have had historically excellent performance in plant disease classification~\cite{shafay2025recent, pal2025lightweight} while including similar models for image classification allowing us to explore this task beyond literature. For reference, these models directly predict crop and disease in one go, which we accomplished on a flattened version of our dataset where each label is a combination of crop and disease, thus resulting in 86 crop-disease combinations. Our results are showcased in Table~\ref{tab:wild_comparison}.
 
-Among higher capacity models, ConvNeXtV2-Tiny, DeiT-Small and ViT-Small achieve the highest accuracy around $96.7\%$. However, their numbers of parameters require at least double that of the reference pipeline, even if still small enough to be deployed. The established CNN baselines (ResNet-50 and EfficientNet-B4) are outperformed by the transformer-based models. There is also a noticeable cluster at 95.60-95.75\% comprising of Swin-Tiny, FastViT-SA24, LeViT-256, and PVT-v2-B1, even though the parameters span from as low as 13.54M to over double at 27.59M, which indicates that parameter count may not predict accuracy well. In particular, Swin-Tiny is outperformed even by the reference pipeline, which is far lighter. However, the pipeline's cascading dependency is a tradeoff against the more accurate but heavier models and the lighter but less accurate models.
-
-Overall, this table establishes reference points for future work on PlantWorld, so that new models can be benchmarked against these results, both on accuracy and parameter count.
-
-\begin{table}
+\begin{table}[h]
 \centering
 \caption{Comparison of plant disease detection architectures on our unified benchmark dataset, sorted by parameter count.}
 \label{tab:wild_comparison}
@@ -349,6 +341,10 @@ Reference (2x MobileViT-S) & 9.98M & 95.77 \\
 \hline
 \end{tabular}
 \end{table}
+
+Among higher capacity models, ConvNeXtV2-Tiny, DeiT-Small and ViT-Small achieve the highest accuracy around $96.7\%$. However, their numbers of parameters require at least double that of the reference pipeline, even if still small enough to be deployed. The established CNN baselines (ResNet-50 and EfficientNet-B4) are outperformed by the transformer-based models. There is also a noticeable cluster at 95.60-95.75\% comprising of Swin-Tiny, FastViT-SA24, LeViT-256, and PVT-v2-B1, even though the parameters span from as low as 13.54M to over double at 27.59M, which indicates that parameter count may not predict accuracy well. In particular, Swin-Tiny is outperformed even by the reference pipeline, which is far lighter. However, the pipeline's cascading dependency is a tradeoff against the more accurate but heavier models and the lighter but less accurate models.
+
+Overall, this table establishes reference points for future work on PlantWorld, so that new models can be benchmarked against these results, both on accuracy and parameter count.
 
 \section{Conclusion and Future Directions}
 \label{sec:conclusion}
